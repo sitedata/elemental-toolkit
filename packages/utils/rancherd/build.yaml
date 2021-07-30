@@ -12,6 +12,8 @@ prelude:
 - dnf install -y git upx
 {{else if eq .Values.distribution "ubuntu" }}
 - apt-get install -y git upx
+{{else if eq .Values.distribution "alpine" }}
+- apk update && apk add git upx
 {{end}}
 {{end}}
 - |

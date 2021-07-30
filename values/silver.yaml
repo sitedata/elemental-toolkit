@@ -1,0 +1,24 @@
+image: "alpine:latest"
+distribution: "alpine"
+arch: "x86_64"
+golang_arch: "amd64"
+packages: >-
+   grub
+   grub-efi
+   grub-bios
+   connman
+   squashfs-tools
+   openrc
+   parted
+   e2fsprogs
+   dosfstools
+   coreutils
+   which
+   curl
+   nano
+   gawk
+   haveged
+   tar
+   rsync
+
+kernel_package: linux-virt

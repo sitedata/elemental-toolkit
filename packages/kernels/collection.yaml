@@ -1,0 +1,5 @@
+packages:
+- category: "kernel"
+  name: "vanilla"
+  version: "9999"
+  description: "Standard kernel"

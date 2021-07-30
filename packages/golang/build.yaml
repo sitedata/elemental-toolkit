@@ -12,11 +12,18 @@ prelude:
 {{else if eq .Values.distribution "ubuntu" }}
 - apt-get update
 - apt-get install -y build-essential wget
+{{else if eq .Values.distribution "alpine" }}
+- apk update && apk add go || true
 {{end}}
 {{end}}
+
+{{ if .Values.distribution }}
+{{if ne .Values.distribution "alpine" }}
 - |
   PACKAGE_VERSION=${PACKAGE_VERSION%\+*} && \
   wget https://golang.org/dl/go$PACKAGE_VERSION.linux-{{.Values.golang_arch}}.tar.gz -O golang.tar.gz
 - echo "{{ ( index .Values.labels "package.checksum" ) }}  golang.tar.gz" | sha256sum -c
 steps:
 - tar -C /usr/local -xzf golang.tar.gz
+{{end}}
+{{end}}

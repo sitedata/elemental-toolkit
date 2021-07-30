@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+
+depend() {
+  after net
+  provide cos-setup-network
+}
+
+start() {
+  cos-setup network
+  eend 0
+}

@@ -3,16 +3,37 @@ requires:
   category: "distro"
   version: ">=0"
 steps:
+
+{{ define "openrc_add" }}
+- cp {{.}}.openrc "/etc/init.d/{{.}}"
+- |
+  mkdir -p /etc/runlevels/default && \
+  ln -sf /etc/init.d/{{.}} /etc/runlevels/default/{{.}}
+{{end}}
+
+
+{{ range list "cos-setup" "cos-setup-reconcile"}}
+- cp -rfv {{.}} /usr/bin/
+- chmod +x /usr/bin/{{.}}
+{{ end }}
+
+
+{{ if .Values.distribution }}
+{{if eq .Values.distribution "alpine" }}
+{{ range list "cos-setup-boot" "cos-setup-reconcile" "cos-setup-network" }}
+{{ template "openrc_add" . }}
+{{ end }}
+{{ else }}
 - mkdir -p /lib/systemd/system
 - mkdir -p /etc/dracut.conf.d
 - cp 02-cos-setup-initramfs.conf /etc/dracut.conf.d
 - cp -rfv *.service /lib/systemd/system
 - cp -rfv *.timer /lib/systemd/system
-- cp -rfv cos-setup /usr/bin/
-- chmod +x /usr/bin/cos-setup
 - systemctl enable cos-setup-rootfs.service
 - systemctl enable cos-setup-initramfs.service
 - systemctl enable cos-setup-reconcile.timer
 - systemctl enable cos-setup-fs.service
 - systemctl enable cos-setup-boot.service
 - systemctl enable cos-setup-network.service
+   {{end}}
+{{end}}

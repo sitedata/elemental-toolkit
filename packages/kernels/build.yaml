@@ -1,0 +1,16 @@
+requires:
+- name: "base"
+  category: "distro"
+  version: ">=0"
+
+unpack: true
+
+includes:
+# Kernel
+- /boot$
+- /boot/.*
+- /boot/.*
+- /boot/.*
+- /lib$
+- /lib/modules$
+- /lib/modules/.*

@@ -16,7 +16,9 @@ prelude:
 - dnf install -y git
   {{else if eq .Values.distribution "ubuntu" }}
 - apt-get install -y git
-  {{end}}
+{{else if eq .Values.distribution "alpine" }}
+- apk update && apk add git make || true
+{{end}}
   {{end}}
 - |
   PACKAGE_VERSION=${PACKAGE_VERSION%\+*} && \
