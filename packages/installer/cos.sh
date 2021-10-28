@@ -176,7 +176,11 @@ prepare_recovery() {
         sync
         tune2fs -L COS_SYSTEM $RECOVERYDIR/cOS/recovery.img
     fi
+    cp -rf $GRUBCONF $RECOVERYDIR/grub.cfg
 
+    if [ -e "/dev/${TTY%,*}" ] && [ "$TTY" != tty1 ] && [ "$TTY" != console ] && [ -n "$TTY" ]; then
+        sed -i "s!console=tty1!console=tty1 console=${TTY}!g" $RECOVERYDIR/grub.cfg
+    fi
     sync
 }
 
@@ -384,11 +388,6 @@ install_grub()
         GRUB_TARGET="--target=${ARCH}-efi --efi-directory=${TARGET}/boot/efi"
     fi
 
-    mkdir ${TARGET}/proc || true
-    mkdir ${TARGET}/dev || true
-    mkdir ${TARGET}/sys || true
-    mkdir ${TARGET}/tmp || true
-
     grub2-install ${GRUB_TARGET} --root-directory=${TARGET}  --boot-directory=${STATEDIR} --removable ${DEVICE}
 
     GRUBDIR=
@@ -398,11 +397,17 @@ install_grub()
         GRUBDIR="${STATEDIR}/grub2"
     fi
 
-    cp -rf $GRUBCONF $GRUBDIR/grub.cfg
+    # STAB the grub menu which scans for the real grub config like we do with cloud images
+    # the real grub config then will be copied over the recovery partition
+    # cos reset at that point when upgrades grub, it will copy the new grub config file back into the recovery
+    # partition
+    cat > $GRUBDIR/grub.cfg << 'EOF'
+search.fs_label COS_RECOVERY root
+set root=($root)
+set prefix=($root)/grub2
+configfile ($root)/grub.cfg
+EOF
 
-    if [ -e "/dev/${TTY%,*}" ] && [ "$TTY" != tty1 ] && [ "$TTY" != console ] && [ -n "$TTY" ]; then
-        sed -i "s!console=tty1!console=tty1 console=${TTY}!g" $GRUBDIR/grub.cfg
-    fi
 }
 
 setup_style()
@@ -801,7 +806,7 @@ reset_grub()
         GRUBDIR="${STATEDIR}/grub2"
     fi
 
-    cp -rfv /etc/cos/grub.cfg $GRUBDIR/grub.cfg
+    cp -rf $GRUBCONF $RECOVERYDIR/grub.cfg
 }
 
 reset_state() {
