@@ -1,0 +1,34 @@
+image: ubuntu
+env:
+- ARCH=arm64
+- CROSS_COMPILE=aarch64-linux-gnu-
+- PATH=/opt/toolchains/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux/bin/:$PATH
+prelude:
+- dpkg --add-architecture i386
+- apt-get update
+
+# https://wiki.odroid.com/odroid-c2/software/building_kernel
+- apt-get install -y git lzop build-essential gcc bc libncurses5-dev libc6-i386 lib32stdc++6 zlib1g:i386 wget
+- wget http://releases.linaro.org/archive/14.09/components/toolchain/binaries/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux.tar.xz
+- mkdir -p /opt/toolchains
+- tar Jxvf gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux.tar.xz -C /opt/toolchains/
+- aarch64-linux-gnu-gcc -v
+- git clone --depth 1 https://github.com/hardkernel/linux.git -b odroidc2-v{{.Values.version}}.y
+
+steps:
+- mkdir -p /output/boot
+- |
+   cd linux && \
+   make odroidc2_defconfig && \
+   cat ../efi.config >> arch/arm64/Kconfig && \
+   echo "CONFIG_EFI=y" >> .config && \
+   echo "CONFIG_EFI_VARS=y" >> .config && \
+   echo "CONFIG_EFIVAR_FS=y" >> .config && \
+   echo "CONFIG_EFI_PARTITION=y" >> .config && \
+   echo "CONFIG_EFI_STUB=y" >> .config && \
+   make -j9 Image dtbs modules
+
+- cp -rfv linux/arch/arm64/boot/Image /output/boot
+- cp -rfv linux/arch/arm64/boot/dts /output/boot
+
+package_dir: "/output"

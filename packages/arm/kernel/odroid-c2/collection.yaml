@@ -1,0 +1,4 @@
+packages:
+- name: "odroid-c2"
+  category: "kernel"
+  version: "3.16"
