@@ -17,7 +17,9 @@ jobs:
           - tag: "odroid-c2-"
             dockerfile: "examples/odroid-c2"
             platforms: "linux/arm64"
-
+          - tag: "rpi-"
+            dockerfile: "examples/rpi"
+            platforms: "linux/arm64"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
