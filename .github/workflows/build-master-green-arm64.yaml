@@ -3,6 +3,7 @@ on:
  push:
    branches:
      - master
+     - arm_fixes
 concurrency:
   group: ci-master-green-arm64-${{ github.head_ref || github.ref }}-${{ github.repository }}
   cancel-in-progress: true
@@ -64,7 +65,7 @@ jobs:
           sudo -E make deps
       - name: Override luet version at toolchain/luet@0.22.7 🔧
         run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
+          sudo luet replace --yes toolchain/luet --for toolchain/luet@0.22.7
       - name: Run make validate
         run: |
           sudo -E make validate
@@ -148,9 +149,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -215,70 +213,6 @@ jobs:
           path: |
             packer/*.box
           if-no-files-found: error
-  tests-squashfs-green:
-    env:
-      ARCH: arm64
-      VAGRANT_CPU: 2
-      VAGRANT_MEMORY: 5120
-      VAGRANT_FIRMWARE: /usr/share/AAVMF/AAVMF_CODE.fd
-      COS_HOST: "192.168.122.50:22"
-      COS_TIMEOUT: 1800
-    runs-on: ubuntu-latest
-    needs: qemu-squashfs-green
-    strategy:
-      matrix:
-        test: [test-fallback]
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-            go-version: '^1.16'
-      - uses: actions/checkout@v2
-      - name: Download vagrant box
-        uses: actions/download-artifact@v2
-        with:
-          name: cOS-Packer-squashfs-green-QEMU-arm64.box
-          path: packer
-      - name: Install deps
-        run: |
-          sudo -E make deps
-          sudo apt-get update
-          sudo apt-get remove -y apparmor*
-          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64 vagrant make libvirt-daemon-system bridge-utils ovmf
-      - name: Prepare libvirt
-        run: |
-          # Create bridge conf
-          sudo mkdir -p /etc/qemu/
-          echo "allow all" | sudo tee -a /etc/qemu/bridge.conf
-          sudo chmod u+r /etc/qemu/bridge.conf
-          sudo chmod u+s $(find /usr/ -name qemu-bridge-helper -print -quit|xargs)
-          # Set a static ip for our VM
-          sudo virsh net-update default add ip-dhcp-host "<host mac='52:54:00:00:00:01' name='jojo' ip='192.168.122.50' />" --live --config
-      - name: Enable serial for default vagrant-libvirt machine
-        run: |
-          # vagrant-libvirt does not support adding serials from config yet so we need to modify the default template directly
-          sudo sed -i "s|<serial type='pty'>|<serial type='file'><source path='$GITHUB_WORKSPACE/serial_log.log'/>|" $(sudo find /usr/share -name "domain.xml.erb" -print -quit|xargs)
-      - name: Prepare tests 🔧
-        run: |
-          go get -u github.com/onsi/ginkgo/ginkgo
-          go get -u github.com/onsi/gomega/...
-          make test-clean
-          make prepare-test
-      - name: Run tests 🔧
-        run: |
-          make ${{ matrix.test }}
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: cOS-squashfs-${{ matrix.test }}.logs.zip
-          path: tests/**/logs/*
-          if-no-files-found: warn
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: cOS-squashfs-${{ matrix.test }}.serial.zip
-          path: serial_log.log
-          if-no-files-found: warn
   iso-nonsquashfs-green:
     runs-on: ubuntu-latest
     needs: build-green-arm64
@@ -316,9 +250,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Tweak manifest and drop squashfs recovery
         run: |
           source .github/helpers.sh
@@ -387,70 +318,6 @@ jobs:
           path: |
             packer/*.box
           if-no-files-found: error
-  tests-nonsquashfs-green:
-    env:
-      ARCH: arm64
-      VAGRANT_CPU: 2
-      VAGRANT_MEMORY: 5120
-      VAGRANT_FIRMWARE: /usr/share/AAVMF/AAVMF_CODE.fd
-      COS_HOST: "192.168.122.50:22"
-      COS_TIMEOUT: 1800
-    runs-on: ubuntu-latest
-    needs: qemu-nonsquashfs-green
-    strategy:
-      matrix:
-        test: [test-fallback]
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-            go-version: '^1.16'
-      - uses: actions/checkout@v2
-      - name: Download vagrant box
-        uses: actions/download-artifact@v2
-        with:
-          name: cOS-Packer-nonsquashfs-green-QEMU-arm64.box
-          path: packer
-      - name: Install deps
-        run: |
-          sudo -E make deps
-          sudo apt-get update
-          sudo apt-get remove -y apparmor*
-          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64 vagrant make libvirt-daemon-system bridge-utils ovmf
-      - name: Prepare libvirt
-        run: |
-          # Create bridge conf
-          sudo mkdir -p /etc/qemu/
-          echo "allow all" | sudo tee -a /etc/qemu/bridge.conf
-          sudo chmod u+r /etc/qemu/bridge.conf
-          sudo chmod u+s $(find /usr/ -name qemu-bridge-helper -print -quit|xargs)
-          # Set a static ip for our VM
-          sudo virsh net-update default add ip-dhcp-host "<host mac='52:54:00:00:00:01' name='jojo' ip='192.168.122.50' />" --live --config
-      - name: Enable serial for default vagrant-libvirt machine
-        run: |
-          # vagrant-libvirt does not support adding serials from config yet so we need to modify the default template directly
-          sudo sed -i "s|<serial type='pty'>|<serial type='file'><source path='$GITHUB_WORKSPACE/serial_log.log'/>|" $(sudo find /usr/share -name "domain.xml.erb" -print -quit|xargs)
-      - name: Prepare tests 🔧
-        run: |
-          go get -u github.com/onsi/ginkgo/ginkgo
-          go get -u github.com/onsi/gomega/...
-          make test-clean
-          make prepare-test
-      - name: Run tests 🔧
-        run: |
-          make ${{ matrix.test }}
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: cOS-nonsquashfs-${{ matrix.test }}.logs.zip
-          path: tests/**/logs/*
-          if-no-files-found: warn
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: cOS-nonsquashfs-${{ matrix.test }}.serial.zip
-          path: serial_log.log
-          if-no-files-found: warn
   image-link-green:
     runs-on: ubuntu-latest
     needs: publish-green
@@ -459,9 +326,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Generate link for green
         run: |
             source .github/helpers.sh
@@ -475,7 +339,9 @@ jobs:
             images-green-arm64.txt
   publish-green:
     runs-on: ubuntu-latest
-    needs: tests-squashfs-green
+    needs:
+    - build-green-arm64
+    - iso-squashfs-green
     permissions:
       id-token: write  # undocumented OIDC support.
     env:
@@ -540,9 +406,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Download result for build
         uses: actions/download-artifact@v2
         with:
@@ -595,9 +458,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh

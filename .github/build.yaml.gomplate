@@ -74,11 +74,7 @@
         run: |
           sudo -E make {{{ $target }}}
   {{{ if eq $target "deps" }}}
-  {{{- if ne $config.luet_override "" }}}
-      - name: Override luet version at toolchain/luet@{{{ $config.luet_override }}} 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@{{{ $config.luet_override }}}
-  {{{  end }}}
+
   {{{  end }}}
 {{{end}}}
 
@@ -162,6 +158,11 @@
         run: echo ${{ secrets.QUAY_PASSWORD }} | docker login -u ${{ secrets.QUAY_USERNAME }} --password-stdin quay.io
   {{{- end }}}
       {{{ tmpl.Exec "make" "deps" }}}
+  {{{- if ne $config.luet_override "" }}}
+      - name: Override luet version at toolchain/luet@{{{ $config.luet_override }}} 🔧
+        run: |
+          sudo luet replace --yes toolchain/luet --for toolchain/luet@{{{ $config.luet_override }}}
+  {{{  end }}}
       {{{ tmpl.Exec "make" "validate" }}}
       - name: Build packages 🔧
         run: |

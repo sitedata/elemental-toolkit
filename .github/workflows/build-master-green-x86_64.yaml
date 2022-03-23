@@ -62,7 +62,7 @@ jobs:
           sudo -E make deps
       - name: Override luet version at toolchain/luet@0.22.7 🔧
         run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
+          sudo luet replace --yes toolchain/luet --for toolchain/luet@0.22.7
       - name: Run make validate
         run: |
           sudo -E make validate
@@ -146,9 +146,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -427,9 +424,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Tweak manifest and drop squashfs recovery
         run: |
           source .github/helpers.sh
@@ -683,9 +677,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Generate link for green
         run: |
             source .github/helpers.sh
@@ -764,9 +755,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Download result for build
         uses: actions/download-artifact@v2
         with:
@@ -819,9 +807,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -940,9 +925,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -980,9 +962,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -1020,9 +999,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
@@ -1077,9 +1053,6 @@ jobs:
       - name: Run make deps
         run: |
           sudo -E make deps
-      - name: Override luet version at toolchain/luet@0.22.7 🔧
-        run: |
-          sudo luet install --force --yes toolchain/luet@0.22.7
       - name: Export cos version
         run: |
              source .github/helpers.sh
